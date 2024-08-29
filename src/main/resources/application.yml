@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${VIRTUAL_PRIVATE_CLOUD_PUBLIC_IP}:${DATASOURCE_PORT}/informator_db?currentSchema=informator
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+  flyway:
+    enabled: true
+  config:
+    import: classpath:.env.properties
+
+integration:
+  russian-mail:
+    authentication:
+      login: ${RUSSIAN_MAIL_LOGIN}
+      password: ${RUSSIAN_MAIL_PASSWORD}
+    url: https://tracking.russianpost.ru/rtm34?wsdl
+    interval: 10m
+
+telegram:
+  bot:
+    name: Informator
+    token: ${TELEGRAM_BOT_TOKEN}
+    menu:
+      type: commands
+      command:
+        start:
+          description: Начать
+        track:
+          description: Отследить по трек-номеру

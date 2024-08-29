@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-container
+    environment:
+      POSTGRES_DB: informator_db
+      POSTGRES_USER: ${DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
+    ports:
+      - "${DATASOURCE_PORT}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+  spring-boot:
+    image: mater-rest
+    container_name: mater-rest-container
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${VIRTUAL_PRIVATE_CLOUD_PUBLIC_IP}:${DATASOURCE_PORT}/mater_db?currentSchema=mater
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+volumes:
+  postgres-data:
+
+networks:
+  backend:
+    driver: bridge
