@@ -115,8 +115,8 @@ public class ButtonBuilderService {
                       
                       %s
                       """.formatted(
-                              records.isEmpty() ? "Ошибка" : records.getFirst().getOperationParameters().getType().getName(),
-                              records.isEmpty() ? "Ошибка" : records.getFirst().getOperationParameters().getAttributes().getName().toLowerCase(),
+                              records.isEmpty() ? "Ошибка" : records.get(0).getOperationParameters().getType().getName(),
+                              records.isEmpty() ? "Ошибка" : records.get(0).getOperationParameters().getAttributes().getName().toLowerCase(),
                               generalMessage
                 ))
                 .parseMode("HTML")

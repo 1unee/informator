@@ -71,7 +71,7 @@ public class UserService {
         );
 
         return todayActions.size() < 100 || list.isEmpty() || LocalDateTime.now().isAfter(
-                list.getLast().getTimestamp().plus(russianMailIntegrationProperties.getInterval())
+                list.get(list.size() - 1).getTimestamp().plus(russianMailIntegrationProperties.getInterval())
         );
     }
 }

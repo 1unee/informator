@@ -15,10 +15,10 @@ services:
     networks:
       - backend
   spring-boot:
-    image: mater-rest
-    container_name: mater-rest-container
+    image: informator
+    container_name: informator-container
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${VIRTUAL_PRIVATE_CLOUD_PUBLIC_IP}:${DATASOURCE_PORT}/mater_db?currentSchema=mater
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${VIRTUAL_PRIVATE_CLOUD_PUBLIC_IP}:${DATASOURCE_PORT}/informator_db?currentSchema=informator
       SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
