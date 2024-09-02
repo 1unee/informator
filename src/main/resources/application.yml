@@ -19,6 +19,10 @@ integration:
       password: ${RUSSIAN_MAIL_PASSWORD}
     url: https://tracking.russianpost.ru/rtm34?wsdl
     interval: 10m
+  dadata:
+    authentication:
+      token: ${DADATA_API_KEY}
+    url: http://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/postal_unit
 
 telegram:
   bot:

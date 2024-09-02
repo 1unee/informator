@@ -1,10 +1,15 @@
 package com.oneune.informator.rest.services;
 
+import com.oneune.informator.rest.configs.properties.DadataIntegrationProperties;
 import com.oneune.informator.rest.configs.properties.RussianMailIntegrationProperties;
 import com.oneune.informator.rest.repositories.ActionRepository;
 import com.oneune.informator.rest.repositories.RequestHistoryRepository;
 import com.oneune.informator.rest.repositories.UpdateRepository;
 import com.oneune.informator.rest.repositories.UserRepository;
+import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressCollectionDto;
+import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressDto;
+import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressRequestDto;
+import com.oneune.informator.rest.store.dtos.russian_mail.AddressParametersDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.entities.ActionEntity;
 import com.oneune.informator.rest.store.entities.RequestHistoryEntity;
@@ -17,8 +22,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.w3c.dom.Node;
 
@@ -30,6 +40,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.FileWriter;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,11 +51,13 @@ import java.util.Optional;
 public class RussianMailIntegrationService {
 
     RussianMailIntegrationProperties russianMailIntegrationProperties;
+    DadataIntegrationProperties dadataIntegrationProperties;
     UserService userService;
     ActionRepository actionRepository;
     UserRepository userRepository;
     UpdateRepository updateRepository;
     RequestHistoryRepository requestHistoryRepository;
+    RestTemplate restTemplate;
 
     @SneakyThrows
     private SOAPMessage getResponse(String orderBarcode) {
@@ -111,6 +125,15 @@ public class RussianMailIntegrationService {
 
             OperationHistoryDto historyDto = (OperationHistoryDto) unmarshaller.unmarshal(source);
             boolean condition = historyDto == null || historyDto.getRecords() == null || historyDto.getRecords().isEmpty();
+
+            if (!condition) {
+                historyDto.getRecords().forEach(record -> {
+                    AddressParametersDto addressParameters = record.getAddressParameters();
+                    addressParameters.setPostalDeparture(getByIndex(addressParameters.getDeparture().getIndex()).orElse(null));
+                    addressParameters.setPostalDestination(getByIndex(addressParameters.getDestination().getIndex()).orElse(null));
+                });
+            }
+
             return condition ? Optional.empty() : Optional.of(historyDto);
         } else {
             log.warn("Parcel by barcode {} not found in RuMail", orderBarcode);
@@ -165,5 +188,24 @@ public class RussianMailIntegrationService {
                         .timestamp(LocalDateTime.now())
                         .build());
         requestHistoryRepository.saveAndFlush(requestHistory);
+    }
+
+    public Optional<FullPostalAddressDto> getByIndex(String postalIndex) {
+
+        FullPostalAddressRequestDto requestDto = FullPostalAddressRequestDto.builder().query(postalIndex).build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.set("Authorization", "Token %s".formatted(dadataIntegrationProperties.getAuthentication().getToken()));
+
+        HttpEntity<FullPostalAddressRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
+
+        ResponseEntity<FullPostalAddressCollectionDto> response = restTemplate.postForEntity(
+                dadataIntegrationProperties.getUrl(), requestEntity, FullPostalAddressCollectionDto.class
+        );
+
+        return Objects.isNull(response.getBody()) || response.getBody().getAddresses().isEmpty()
+                ? Optional.empty() : Optional.of(response.getBody().getAddresses().get(0).getData());
     }
 }

@@ -1,5 +1,6 @@
 package com.oneune.informator.rest.store.dtos.russian_mail;
 
+import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressDto;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.AccessLevel;
@@ -28,6 +29,12 @@ public class AddressParametersDto {
     AddressDto destination;
 
     /**
+     * Подробная информация о месте назначения почтового отделения.
+     * Информация берется путем интеграции с Dadata-сервисом.
+     */
+    FullPostalAddressDto postalDestination;
+
+    /**
      * Содержит данные о стране места назначения пересылки отправления.
      */
     @XmlElement(name = "MailDirect", namespace = "http://russianpost.org/operationhistory/data")
@@ -38,6 +45,12 @@ public class AddressParametersDto {
      */
     @XmlElement(name = "OperationAddress", namespace = "http://russianpost.org/operationhistory/data")
     AddressDto departure;
+
+    /**
+     * Подробная информация о месте отправления почтового отделения.
+     * Информация берется путем интеграции с Dadata-сервисом.
+     */
+    FullPostalAddressDto postalDeparture;
 
     /**
      * Содержит данные о стране места назначения пересылки отправления.

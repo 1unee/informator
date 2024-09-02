@@ -100,7 +100,8 @@ public class ButtonBuilderService {
         return zonedDateTime.format(formatter);
     }
 
-    public SendMessage buildOperationHistory(Update update, OperationHistoryDto history) {
+    public SendMessage buildOperationHistory(Update update,
+                                             OperationHistoryDto history) {
 
         List<HistoryRecordDto> records = history.getRecords().stream()
                 .sorted(comparing(record -> OffsetDateTime.parse(record.getOperationParameters().getStringifiedTimestamp()), reverseOrder()))
@@ -111,7 +112,7 @@ public class ButtonBuilderService {
                 .map(index -> Pair.of(index, records.get(index - 1)))
                 .map(pair -> "%s. %s - %s (%s) (%s)".formatted(
                         pair.getLeft(),
-                        pair.getRight().getAddressParameters().getDeparture().getDescription(),
+                        pair.getRight().getAddressParameters().getPostalDeparture().getAddressStr(),
                         pair.getRight().getOperationParameters().getAttributes().getName(),
                         pair.getRight().getOperationParameters().getType().getName(),
                         getPrettyTimestamp(pair.getRight().getOperationParameters().getStringifiedTimestamp())
@@ -133,7 +134,7 @@ public class ButtonBuilderService {
                               perform(records.get(records.size() - 1), PersonalsParametersDto::getDestinationPersonal),
                               records.isEmpty() ? "Ошибка" : records.get(0).getOperationParameters().getType().getName(),
                               records.isEmpty() ? "Ошибка" : records.get(0).getOperationParameters().getAttributes().getName().toLowerCase(),
-                              records.isEmpty() ? "Ошибка" : records.get(0).getAddressParameters().getDeparture().getDescription(),
+                              records.isEmpty() ? "Ошибка" : records.get(0).getAddressParameters().getPostalDeparture().getAddressStr(),
                               generalMessage
                 ))
                 .parseMode("HTML")

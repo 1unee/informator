@@ -6,12 +6,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 
-import java.time.Duration;
-
-@ConfigurationProperties(prefix = "integration.russian-mail")
+@ConfigurationProperties(prefix = "integration.dadata")
 @PropertySource("classpath:application.yml")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
-public class RussianMailIntegrationProperties extends AbstractIntegrationProperties {
-    Duration interval;
+public class DadataIntegrationProperties extends AbstractIntegrationProperties {
 }
