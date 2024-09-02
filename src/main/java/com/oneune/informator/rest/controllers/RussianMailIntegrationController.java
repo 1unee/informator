@@ -18,6 +18,6 @@ public class RussianMailIntegrationController {
 
     @GetMapping("parcels/{barcode}/operation-history")
     public OperationHistoryDto trackPackage(@PathVariable String barcode) {
-        return russianMailIntegrationService.integrate(barcode);
+        return russianMailIntegrationService.integrate(barcode).orElseThrow();
     }
 }

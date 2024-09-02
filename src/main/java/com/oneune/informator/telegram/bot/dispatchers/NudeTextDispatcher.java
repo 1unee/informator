@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -36,14 +37,20 @@ public class NudeTextDispatcher implements Dispatcher {
             ChatStateEnum chatState = chatStates.get(TelegramBotUtils.extractChatId(update));
 
             if (chatState.equals(ChatStateEnum.WAIT_BARCODE) && text.chars().allMatch(Character::isDigit)) {
-                OperationHistoryDto history = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
+                Optional<OperationHistoryDto> opt = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
                         update.getMessage().getFrom(), text, true
                 );
-                SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, history);
+
+                if (opt.isEmpty()) {
+                    TelegramBotUtils.informAboutError(bot, update, "Отправления по такому трек-номеру не найдено!");
+                    throw new RuntimeException("Отправления по такому трек-номеру не найдено!");
+                }
+
+                SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, opt.get());
                 chatStates.put(TelegramBotUtils.extractChatId(update), ChatStateEnum.DEFAULT);
                 TelegramBotUtils.uncheckedExecute(bot, historyMessage);
             } else {
-                TelegramBotUtils.handleUnknownUpdateType(update, bot);
+                TelegramBotUtils.informAboutError(bot, update, "Отправления по такому трек-номеру не найдено!");
             }
 
         } else {

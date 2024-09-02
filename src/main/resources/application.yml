@@ -33,3 +33,6 @@ telegram:
           description: Отследить по трек-номеру
         history_track:
           description: История отслеживаний по трек-номеру
+
+scheduler:
+  check-parcel-delivering: false

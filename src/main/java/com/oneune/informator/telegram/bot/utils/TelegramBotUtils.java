@@ -74,6 +74,15 @@ public class TelegramBotUtils {
         return TelegramBotUtils.uncheckedExecute(bot, informAboutDevelopingMessage);
     }
 
+    public Message informAboutError(DefaultAbsSender bot, Update update, String message) {
+        Long chatId = TelegramBotUtils.extractChatId(update);
+        SendMessage informAboutDevelopingMessage = SendMessage.builder()
+                .chatId(chatId.toString())
+                .text(message)
+                .build();
+        return TelegramBotUtils.uncheckedExecute(bot, informAboutDevelopingMessage);
+    }
+
     public static Message handleUnknownUpdateType(Update update, DefaultAbsSender bot) {
         log.warn("Unknown update type!");
         SendMessage unknownUpdateTypeMessage = SendMessage.builder()

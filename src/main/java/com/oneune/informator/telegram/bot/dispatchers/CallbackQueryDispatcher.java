@@ -16,6 +16,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Optional;
+
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -33,10 +35,10 @@ public class CallbackQueryDispatcher implements Dispatcher {
 
         if (callbackQueryData.contains(CommandEnum.HISTORY_TRACK.name())) {
             String barcode = callbackQueryData.split("_")[3];
-            OperationHistoryDto history = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
+            Optional<OperationHistoryDto> opt = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
                     callbackQuery.getFrom(), barcode, true
             );
-            SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, history);
+            SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, opt.orElseThrow());
             TelegramBotUtils.uncheckedExecute(bot, historyMessage);
         } else {
             TelegramBotUtils.handleUnknownUpdateType(update, bot);

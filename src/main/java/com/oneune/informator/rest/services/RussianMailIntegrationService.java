@@ -8,12 +8,8 @@ import com.oneune.informator.rest.repositories.UserRepository;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.entities.ActionEntity;
 import com.oneune.informator.rest.store.entities.RequestHistoryEntity;
-import com.oneune.informator.rest.store.entities.UpdateEntity;
 import com.oneune.informator.rest.store.entities.UserEntity;
-import com.oneune.informator.telegram.bot.abstracts.Command;
-import com.oneune.informator.telegram.bot.store.enums.CommandEnum;
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.*;
 import lombok.AccessLevel;
@@ -23,8 +19,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.w3c.dom.Node;
 
@@ -36,10 +30,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.FileWriter;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -100,7 +91,7 @@ public class RussianMailIntegrationService {
     }
 
     @SneakyThrows
-    public OperationHistoryDto integrate(String orderBarcode) {
+    public Optional<OperationHistoryDto> integrate(String orderBarcode) {
 
         SOAPMessage soapmsg = getResponse(orderBarcode);
 
@@ -116,18 +107,21 @@ public class RussianMailIntegrationService {
 
             // Анмаршалим элемент в объект Java
             Source source = new DOMSource(responseNode);
-            logXml(source);
+//            logXml(source);
 
-            return (OperationHistoryDto) unmarshaller.unmarshal(source);
+            OperationHistoryDto historyDto = (OperationHistoryDto) unmarshaller.unmarshal(source);
+            boolean condition = historyDto == null || historyDto.getRecords() == null || historyDto.getRecords().isEmpty();
+            return condition ? Optional.empty() : Optional.of(historyDto);
         } else {
-            throw new JAXBException("Element getOperationHistoryResponse not found in SOAP message.");
+            log.warn("Parcel by barcode {} not found in RuMail", orderBarcode);
+            return Optional.empty();
         }
     }
 
     @Transactional
-    public OperationHistoryDto getOperationHistoryByParcelBarcode(User telegramUser,
-                                                                  String barcode,
-                                                                  boolean controlLimit) {
+    public Optional<OperationHistoryDto> getOperationHistoryByParcelBarcode(User telegramUser,
+                                                                            String barcode,
+                                                                            boolean controlLimit) {
         UserEntity userEntity = userRepository.findByTelegramId(telegramUser.getId()).orElseThrow();
         actionRepository.save(ActionEntity.builder()
                 .user(userEntity)
@@ -136,16 +130,20 @@ public class RussianMailIntegrationService {
                 .build());
         if (controlLimit) {
             if (userService.isActionAvailable(telegramUser)) {
-                OperationHistoryDto operationHistoryDto = integrate(barcode);
-                createUserRequestHistory(userEntity, barcode);
-                return operationHistoryDto;
+                Optional<OperationHistoryDto> integrate = integrate(barcode);
+                if (integrate.isPresent()) {
+                    createUserRequestHistory(userEntity, barcode);
+                }
+                return integrate;
             } else {
                 throw new RuntimeException("New action is not available!");
             }
         } else {
-            OperationHistoryDto operationHistoryDto = integrate(barcode);
-            createUserRequestHistory(userEntity, barcode);
-            return operationHistoryDto;
+            Optional<OperationHistoryDto> integrate = integrate(barcode);
+            if (integrate.isPresent()) {
+                createUserRequestHistory(userEntity, barcode);
+            }
+            return integrate;
         }
     }
 
@@ -154,7 +152,7 @@ public class RussianMailIntegrationService {
         Transformer t = TransformerFactory.newInstance().newTransformer();
         t.setOutputProperty(OutputKeys.METHOD, "xml");
         t.setOutputProperty(OutputKeys.INDENT, "yes");
-        StreamResult result = new StreamResult(new FileWriter("out_example.xml"));
+        StreamResult result = new StreamResult(new FileWriter("classpath:static/out_example.xml"));
         t.transform(source, result);
     }
 
