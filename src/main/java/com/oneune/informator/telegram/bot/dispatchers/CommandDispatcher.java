@@ -34,6 +34,7 @@ public class CommandDispatcher implements Dispatcher {
         switch (command) {
             case START -> botService.execute(bot, update);
             case TRACK -> botService.sendTrackMessage(bot, update);
+            case HISTORY_TRACK -> botService.sendHistoryTrackMessage(bot, update);
             default -> throw new IllegalArgumentException("Unknown CommandType enum constant!");
         }
     }

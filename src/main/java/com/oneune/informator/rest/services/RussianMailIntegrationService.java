@@ -2,10 +2,16 @@ package com.oneune.informator.rest.services;
 
 import com.oneune.informator.rest.configs.properties.RussianMailIntegrationProperties;
 import com.oneune.informator.rest.repositories.ActionRepository;
+import com.oneune.informator.rest.repositories.RequestHistoryRepository;
+import com.oneune.informator.rest.repositories.UpdateRepository;
 import com.oneune.informator.rest.repositories.UserRepository;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.entities.ActionEntity;
+import com.oneune.informator.rest.store.entities.RequestHistoryEntity;
+import com.oneune.informator.rest.store.entities.UpdateEntity;
 import com.oneune.informator.rest.store.entities.UserEntity;
+import com.oneune.informator.telegram.bot.abstracts.Command;
+import com.oneune.informator.telegram.bot.store.enums.CommandEnum;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -17,12 +23,23 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.w3c.dom.Node;
 
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.FileWriter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -34,6 +51,8 @@ public class RussianMailIntegrationService {
     UserService userService;
     ActionRepository actionRepository;
     UserRepository userRepository;
+    UpdateRepository updateRepository;
+    RequestHistoryRepository requestHistoryRepository;
 
     @SneakyThrows
     private SOAPMessage getResponse(String orderBarcode) {
@@ -97,6 +116,8 @@ public class RussianMailIntegrationService {
 
             // Анмаршалим элемент в объект Java
             Source source = new DOMSource(responseNode);
+            logXml(source);
+
             return (OperationHistoryDto) unmarshaller.unmarshal(source);
         } else {
             throw new JAXBException("Element getOperationHistoryResponse not found in SOAP message.");
@@ -115,12 +136,36 @@ public class RussianMailIntegrationService {
                 .build());
         if (controlLimit) {
             if (userService.isActionAvailable(telegramUser)) {
-                return integrate(barcode);
+                OperationHistoryDto operationHistoryDto = integrate(barcode);
+                createUserRequestHistory(userEntity, barcode);
+                return operationHistoryDto;
             } else {
                 throw new RuntimeException("New action is not available!");
             }
         } else {
-            return integrate(barcode);
+            OperationHistoryDto operationHistoryDto = integrate(barcode);
+            createUserRequestHistory(userEntity, barcode);
+            return operationHistoryDto;
         }
+    }
+
+    @SneakyThrows
+    private void logXml(Source source) {
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        t.setOutputProperty(OutputKeys.METHOD, "xml");
+        t.setOutputProperty(OutputKeys.INDENT, "yes");
+        StreamResult result = new StreamResult(new FileWriter("out_example.xml"));
+        t.transform(source, result);
+    }
+
+    @Transactional
+    protected void createUserRequestHistory(UserEntity user, String barcode) {
+        RequestHistoryEntity requestHistory = requestHistoryRepository.findByBarcode(barcode)
+                .orElseGet(() -> RequestHistoryEntity.builder()
+                        .user(user)
+                        .barcode(barcode)
+                        .timestamp(LocalDateTime.now())
+                        .build());
+        requestHistoryRepository.saveAndFlush(requestHistory);
     }
 }

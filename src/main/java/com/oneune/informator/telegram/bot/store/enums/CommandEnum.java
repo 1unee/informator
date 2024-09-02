@@ -11,7 +11,8 @@ import lombok.experimental.FieldDefaults;
 public enum CommandEnum {
 
     START(UpdateTypeEnum.COMMAND.getPrefix() + "start", "Начать выбирать машину"),
-    TRACK(UpdateTypeEnum.COMMAND.getPrefix() + "track", "Отследить по трек-номеру");
+    TRACK(UpdateTypeEnum.COMMAND.getPrefix() + "track", "Отследить по трек-номеру"),
+    HISTORY_TRACK(UpdateTypeEnum.COMMAND.getPrefix() + "history_track", "История отслеживаний по трек-номеру");
 
     String value;
     String description;

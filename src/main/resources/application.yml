@@ -31,3 +31,5 @@ telegram:
           description: Начать
         track:
           description: Отследить по трек-номеру
+        history_track:
+          description: История отслеживаний по трек-номеру

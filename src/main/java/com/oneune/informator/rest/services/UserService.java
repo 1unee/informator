@@ -47,6 +47,7 @@ public class UserService {
 
     @Transactional
     public UserDto registerOrGet(User telegramUser) {
+        // todo: кейс когда нет юзернейма
         Optional<UserDto> user = userReader.get(telegramUser.getUserName());
         return user.orElseGet(() -> modelMapper.map(register(telegramUser), UserDto.class));
     }

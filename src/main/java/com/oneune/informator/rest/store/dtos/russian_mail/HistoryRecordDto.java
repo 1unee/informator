@@ -36,7 +36,7 @@ public class HistoryRecordDto {
     /**
      * Содержит данные о почтовом отправлении.
      */
-    @XmlElement(name = "ParcelParameters", namespace = "http://russianpost.org/operationhistory/data")
+    @XmlElement(name = "ItemParameters", namespace = "http://russianpost.org/operationhistory/data")
     ParcelParametersDto parcelParameters;
 
     /**

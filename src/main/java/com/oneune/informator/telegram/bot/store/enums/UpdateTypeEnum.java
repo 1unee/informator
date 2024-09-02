@@ -12,6 +12,7 @@ public enum UpdateTypeEnum {
 
     COMMAND("/", "Команда"),
     NUDE_TEXT("", "Текст"),
+    CALLBACK_QUERY("/cq_", "Коллбэк"),
     UNKNOWN("", "Неизвестно");
 
     String prefix;

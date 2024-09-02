@@ -4,6 +4,7 @@ import com.oneune.informator.rest.repositories.UpdateRepository;
 import com.oneune.informator.rest.store.entities.UpdateEntity;
 import com.oneune.informator.telegram.bot.abstracts.AbstractLongPollingTelegramBot;
 import com.oneune.informator.telegram.bot.configs.properies.TelegramBotProperties;
+import com.oneune.informator.telegram.bot.dispatchers.CallbackQueryDispatcher;
 import com.oneune.informator.telegram.bot.dispatchers.CommandDispatcher;
 import com.oneune.informator.telegram.bot.dispatchers.NudeTextDispatcher;
 import com.oneune.informator.telegram.bot.store.enums.UpdateTypeEnum;
@@ -26,16 +27,18 @@ public class InformatorTelegramBot extends AbstractLongPollingTelegramBot {
     UpdateRepository updateRepository;
     CommandDispatcher commandDispatcher;
     NudeTextDispatcher nudeTextDispatcher;
+    CallbackQueryDispatcher callbackQueryDispatcher;
 
     public InformatorTelegramBot(TelegramBotProperties telegramBotProperties,
                                  UpdateRepository updateRepository,
                                  CommandDispatcher commandDispatcher,
-                                 NudeTextDispatcher nudeTextDispatcher) {
+                                 NudeTextDispatcher nudeTextDispatcher, CallbackQueryDispatcher callbackQueryDispatcher) {
         super(telegramBotProperties);
         this.telegramBotProperties = telegramBotProperties;
         this.updateRepository = updateRepository;
         this.commandDispatcher = commandDispatcher;
         this.nudeTextDispatcher = nudeTextDispatcher;
+        this.callbackQueryDispatcher = callbackQueryDispatcher;
     }
 
     @Transactional
@@ -45,6 +48,7 @@ public class InformatorTelegramBot extends AbstractLongPollingTelegramBot {
         UpdateTypeEnum updateType = DispatcherUtils.classifyUpdate(update);
         switch (updateType) {
             case COMMAND -> commandDispatcher.distribute(bot, update);
+            case CALLBACK_QUERY -> callbackQueryDispatcher.distribute(bot, update);
             case NUDE_TEXT -> nudeTextDispatcher.distribute(bot, update);
             case UNKNOWN -> TelegramBotUtils.handleUnknownUpdateType(update, bot);
         }

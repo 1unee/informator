@@ -18,6 +18,9 @@ public final class DispatcherUtils {
             } else {
                 return UpdateTypeEnum.UNKNOWN;
             }
+        } else if (update.hasCallbackQuery()
+                && update.getCallbackQuery().getData().startsWith(UpdateTypeEnum.CALLBACK_QUERY.getPrefix())) {
+            return UpdateTypeEnum.CALLBACK_QUERY;
         } else {
             return UpdateTypeEnum.UNKNOWN;
         }

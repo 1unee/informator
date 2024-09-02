@@ -32,4 +32,11 @@ public class UserEntity extends AbstractEntity {
             fetch = FetchType.LAZY
     )
     List<ActionEntity> actions = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
+    List<RequestHistoryEntity> requestHistories = new ArrayList<>();
 }
