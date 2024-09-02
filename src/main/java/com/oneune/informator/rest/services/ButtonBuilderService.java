@@ -1,13 +1,10 @@
 package com.oneune.informator.rest.services;
 
-import com.ctc.wstx.util.StringUtil;
 import com.oneune.informator.rest.readers.UserReader;
-import com.oneune.informator.rest.repositories.UserRepository;
 import com.oneune.informator.rest.store.dtos.russian_mail.HistoryRecordDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.PersonalsParametersDto;
 import com.oneune.informator.rest.store.entities.RequestHistoryEntity;
-import com.oneune.informator.rest.store.entities.UserEntity;
 import com.oneune.informator.telegram.bot.configs.properies.TelegramBotProperties;
 import com.oneune.informator.telegram.bot.store.enums.CommandEnum;
 import com.oneune.informator.telegram.bot.utils.TelegramBotUtils;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -29,7 +25,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -56,9 +51,10 @@ public class ButtonBuilderService {
                       
                       Слева снизу есть кнопка меню, нажав на нее, высветится меню из кнопок «%s».
                       
-                      Выбери походящую опцию.
+                      Выбери подходящую опцию.
                       """.formatted(
-                              update.getMessage().getFrom().getUserName(),
+                            update.getMessage().getFrom().getUserName().startsWith("user")
+                                    ? "друг" : update.getMessage().getFrom().getUserName(),
                               String.join(", ", telegramBotProperties.getMenu().getCommand()
                                       .values()
                                       .stream()
