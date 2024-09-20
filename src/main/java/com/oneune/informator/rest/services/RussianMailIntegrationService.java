@@ -9,6 +9,7 @@ import com.oneune.informator.rest.repositories.UserRepository;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressCollectionDto;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressDto;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressRequestDto;
+import com.oneune.informator.rest.store.dtos.russian_mail.AddressDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.AddressParametersDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.entities.ActionEntity;
@@ -49,6 +50,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Log4j2
 public class RussianMailIntegrationService {
+
+    public static final String UNKNOWN = "Неизвестно (нет информации в базе данных)";
 
     RussianMailIntegrationProperties russianMailIntegrationProperties;
     DadataIntegrationProperties dadataIntegrationProperties;
@@ -123,18 +126,18 @@ public class RussianMailIntegrationService {
             Source source = new DOMSource(responseNode);
 //            logXml(source);
 
-            OperationHistoryDto historyDto = (OperationHistoryDto) unmarshaller.unmarshal(source);
-            boolean condition = historyDto == null || historyDto.getRecords() == null || historyDto.getRecords().isEmpty();
+            OperationHistoryDto history = (OperationHistoryDto) unmarshaller.unmarshal(source);
+            boolean condition = history == null || history.getRecords() == null || history.getRecords().isEmpty();
 
             if (!condition) {
-                historyDto.getRecords().forEach(record -> {
+                history.getRecords().forEach(record -> {
                     AddressParametersDto addressParameters = record.getAddressParameters();
-                    addressParameters.setPostalDeparture(getByIndex(addressParameters.getDeparture().getIndex()).orElse(null));
-                    addressParameters.setPostalDestination(getByIndex(addressParameters.getDestination().getIndex()).orElse(null));
+                    addressParameters.setPostalDeparture(integrateWithDadataByPostalIndex(addressParameters.getDeparture().getIndex()));
+                    addressParameters.setPostalDestination(integrateWithDadataByPostalIndex(addressParameters.getDestination().getIndex()));
                 });
             }
 
-            return condition ? Optional.empty() : Optional.of(historyDto);
+            return condition ? Optional.empty() : Optional.of(history);
         } else {
             log.warn("Parcel by barcode {} not found in RuMail", orderBarcode);
             return Optional.empty();
@@ -190,7 +193,7 @@ public class RussianMailIntegrationService {
         requestHistoryRepository.saveAndFlush(requestHistory);
     }
 
-    public Optional<FullPostalAddressDto> getByIndex(String postalIndex) {
+    public FullPostalAddressDto integrateWithDadataByPostalIndex(String postalIndex) {
 
         FullPostalAddressRequestDto requestDto = FullPostalAddressRequestDto.builder().query(postalIndex).build();
 
@@ -205,7 +208,13 @@ public class RussianMailIntegrationService {
                 dadataIntegrationProperties.getUrl(), requestEntity, FullPostalAddressCollectionDto.class
         );
 
-        return Objects.isNull(response.getBody()) || response.getBody().getAddresses().isEmpty()
-                ? Optional.empty() : Optional.of(response.getBody().getAddresses().get(0).getData());
+        if (Objects.isNull(response.getBody()) || response.getBody().getAddresses().isEmpty()) {
+            return FullPostalAddressDto.builder()
+                    .postalCode(UNKNOWN)
+                    .addressStr(UNKNOWN)
+                    .build();
+        } else {
+           return response.getBody().getAddresses().get(0).getData();
+        }
     }
 }

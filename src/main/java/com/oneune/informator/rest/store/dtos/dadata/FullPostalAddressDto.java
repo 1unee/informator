@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
@@ -29,7 +30,7 @@ public class FullPostalAddressDto {
      * Например, false
      */
     @JsonAlias("is_closed")
-    boolean isClosed;
+    Boolean isClosed;
 
     /**
      * Код типа объекта
@@ -41,11 +42,11 @@ public class FullPostalAddressDto {
     /**
      * Полный адрес в строковом формате
      * Например, "Респ Башкортостан, г Стерлитамак, ул Нагуманова, д 56Б"
+     * М
      */
     @JsonAlias("address_str")
     String addressStr;
 
-    // Код КЛАДР для адреса
     /**
      * Код КЛАДР для адреса
      * Например, 0200001400000
@@ -57,21 +58,21 @@ public class FullPostalAddressDto {
      * Качество адреса (0 - точный адрес)
      */
     @JsonAlias("address_qc")
-    String addressQc;
+    Integer addressQc;
 
     /**
      * Широта географического положения
      * Например, 53.631019
      */
     @JsonAlias("geo_lat")
-    double geoLat;
+    BigDecimal geoLat;
 
     /**
      * Долгота географического положения
      * Например, 55.958303
      */
     @JsonAlias("geo_lon")
-    double geoLon;
+    BigDecimal geoLon;
 
     /**
      * График работы на понедельник

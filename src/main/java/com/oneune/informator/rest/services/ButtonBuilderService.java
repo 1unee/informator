@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -113,7 +114,7 @@ public class ButtonBuilderService {
                 .map(pair -> "%s. %s - %s (%s) (%s)".formatted(
                         pair.getLeft(),
                         pair.getRight().getAddressParameters().getPostalDeparture().getAddressStr(),
-                        pair.getRight().getOperationParameters().getAttributes().getName(),
+                        Objects.isNull(pair.getRight().getOperationParameters().getAttributes().getName()) ? "" : pair.getRight().getOperationParameters().getAttributes().getName(),
                         pair.getRight().getOperationParameters().getType().getName(),
                         getPrettyTimestamp(pair.getRight().getOperationParameters().getStringifiedTimestamp())
                 ))

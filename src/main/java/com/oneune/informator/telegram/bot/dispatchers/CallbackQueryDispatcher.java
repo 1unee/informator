@@ -35,10 +35,10 @@ public class CallbackQueryDispatcher implements Dispatcher {
 
         if (callbackQueryData.contains(CommandEnum.HISTORY_TRACK.name())) {
             String barcode = callbackQueryData.split("_")[3];
-            Optional<OperationHistoryDto> opt = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
+            Optional<OperationHistoryDto> response = russianMailIntegrationService.getOperationHistoryByParcelBarcode(
                     callbackQuery.getFrom(), barcode, true
             );
-            SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, opt.orElseThrow());
+            SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, response.orElseThrow());
             TelegramBotUtils.uncheckedExecute(bot, historyMessage);
         } else {
             TelegramBotUtils.handleUnknownUpdateType(update, bot);

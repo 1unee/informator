@@ -38,6 +38,18 @@ public class TelegramBotUtils {
         return chatId;
     }
 
+    public Long extractMessageId(Update update) {
+        Long chatId;
+        if (update.hasMessage()) {
+            chatId = update.getMessage().getChatId();
+        } else if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else {
+            throw new BusinessLogicException("Not predicted state!");
+        }
+        return chatId;
+    }
+
     public  <S extends Serializable,
              M extends BotApiMethod<S>> S uncheckedExecute(DefaultAbsSender bot,
                                                            M method) {
