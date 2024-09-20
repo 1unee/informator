@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -145,6 +146,7 @@ public class RussianMailIntegrationService {
     }
 
     @Transactional
+    @Cacheable(cacheNames = "operation_history", key = "#barcode")
     public Optional<OperationHistoryDto> getOperationHistoryByParcelBarcode(User telegramUser,
                                                                             String barcode,
                                                                             boolean controlLimit) {

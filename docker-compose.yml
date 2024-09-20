@@ -15,7 +15,7 @@ services:
     networks:
       - backend
   spring-boot:
-    image: informator
+    image: informator-image
     container_name: informator-container
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://${VIRTUAL_PRIVATE_CLOUD_PUBLIC_IP}:${DATASOURCE_PORT}/informator_db?currentSchema=informator
