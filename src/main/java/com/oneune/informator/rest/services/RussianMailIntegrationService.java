@@ -9,7 +9,6 @@ import com.oneune.informator.rest.repositories.UserRepository;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressCollectionDto;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressDto;
 import com.oneune.informator.rest.store.dtos.dadata.FullPostalAddressRequestDto;
-import com.oneune.informator.rest.store.dtos.russian_mail.AddressDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.AddressParametersDto;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.rest.store.entities.ActionEntity;
@@ -149,7 +148,7 @@ public class RussianMailIntegrationService {
     @Cacheable(cacheNames = "operation_history", key = "#barcode")
     public Optional<OperationHistoryDto> getOperationHistoryByParcelBarcode(User telegramUser,
                                                                             String barcode,
-                                                                            boolean controlLimit) {
+                                                                            boolean controlLimit) throws IllegalStateException {
         UserEntity userEntity = userRepository.findByTelegramId(telegramUser.getId()).orElseThrow();
         actionRepository.save(ActionEntity.builder()
                 .user(userEntity)
@@ -164,7 +163,7 @@ public class RussianMailIntegrationService {
                 }
                 return integrate;
             } else {
-                throw new RuntimeException("New action is not available!");
+                throw new IllegalStateException("К сожалению, лимит действий исчерпан! Попробуйте снова через сутки.");
             }
         } else {
             Optional<OperationHistoryDto> integrate = integrate(barcode);

@@ -5,7 +5,6 @@ import com.oneune.informator.rest.services.RussianMailIntegrationService;
 import com.oneune.informator.rest.store.dtos.russian_mail.OperationHistoryDto;
 import com.oneune.informator.telegram.bot.abstracts.Dispatcher;
 import com.oneune.informator.telegram.bot.store.enums.ChatStateEnum;
-import com.oneune.informator.telegram.bot.store.enums.CommandEnum;
 import com.oneune.informator.telegram.bot.utils.TelegramBotUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,6 @@ public class NudeTextDispatcher implements Dispatcher {
 
                 if (opt.isEmpty()) {
                     TelegramBotUtils.informAboutError(bot, update, "Отправления по такому трек-номеру не найдено!");
-                    throw new RuntimeException("Отправления по такому трек-номеру не найдено!");
                 }
 
                 SendMessage historyMessage = buttonBuilderService.buildOperationHistory(update, opt.get());

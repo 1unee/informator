@@ -14,8 +14,4 @@ APP_VERSION=$2
 echo "Building docker image $APP_NAME (version is $APP_VERSION)"
 
 # Выполняем команду сборки Docker
-docker build \
-    --build-arg "APP_NAME=$APP_NAME" \
-    --build-arg "APP_VERSION=$APP_VERSION" \
-    -t "$APP_NAME" \
-    -f ./../mater-rest/Dockerfile ./../mater-rest
+docker build -t "$APP_NAME"-image .
